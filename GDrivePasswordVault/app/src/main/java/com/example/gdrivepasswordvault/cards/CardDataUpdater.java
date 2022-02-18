@@ -1,8 +1,12 @@
-package com.example.gdrivepasswordvault;
+package com.example.gdrivepasswordvault.cards;
 
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+
+import com.example.gdrivepasswordvault.Global;
+import com.example.gdrivepasswordvault.cards.CardData;
+import com.example.gdrivepasswordvault.cards.RecyclerViewAdapter;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package com.example.gdrivepasswordvault;
+package com.example.gdrivepasswordvault.cards;
 
 public class CardData implements Comparable<CardData> {
     String[] mData;

@@ -1,11 +1,5 @@
-package com.example.gdrivepasswordvault;
+package com.example.gdrivepasswordvault.cards;
 
-import android.app.Activity;
-import android.content.DialogInterface;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-import android.util.SparseArray;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +12,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gdrivepasswordvault.Encryption;
+import com.example.gdrivepasswordvault.Logger;
+import com.example.gdrivepasswordvault.MainActivity;
+import com.example.gdrivepasswordvault.R;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
@@ -28,7 +27,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private ArrayList<CardData> mCards;
     private ArrayList<FilteredElement> mFilteredOut;
 
-    RecyclerViewAdapter(MainActivity act){
+    public RecyclerViewAdapter(MainActivity act){
         this.act = act;
         mCards = new ArrayList<>();
         mFilteredOut = new ArrayList<>();
@@ -137,7 +136,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 s.append(String.format(":\"%s\"\00\"%s\"\00\"%s\"\00\"%s\"\00\"%s\"\00\"%s\"\n", data.mData[0], data.mData[1], data.mData[2], data.mData[3], data.mData[4], data.mData[5]));
             }
 
-            uploadData  = (s.toString()+"#"+Encryption.md5(s.toString().getBytes())).getBytes();
+            uploadData  = (s.toString()+"#"+ Encryption.md5(s.toString().getBytes())).getBytes();
 
         }catch(Exception e) {
             uploadData = null;
@@ -335,5 +334,4 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             this.carddata = carddata;
         }
     }
-
 }

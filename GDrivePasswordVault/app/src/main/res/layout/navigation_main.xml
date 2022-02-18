@@ -17,7 +17,7 @@
             android:id="@+id/statusBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:gravity="center"
-            android:text="Password Vault v0.1" android:textColor="#D30158" android:textSize="24sp" android:textStyle="bold"/>
+            android:text="GDrive Password Vault v1.0" android:textColor="#D30158" android:textSize="24sp" android:textStyle="bold"/>
         <TextView
             android:id="@+id/logger"
             android:layout_width="match_parent"

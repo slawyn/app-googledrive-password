@@ -1,29 +1,37 @@
 package com.example.gdrivepasswordvault;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
-
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.os.Bundle;
-
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.gdrivepasswordvault.cards.CustomLayoutManager;
+import com.example.gdrivepasswordvault.cards.RecyclerViewAdapter;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
-
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
@@ -31,11 +39,6 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 
-import android.content.Intent;
-import android.util.Log;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Vector;
 
@@ -43,13 +46,20 @@ import java.util.Vector;
 // https://developer.android.com/studio/publish/app-signing#signing-manually
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnFocusChangeListener, TextWatcher {
     private static final String TAG = "GDrivePasswordVault";
-    private static final int REQUEST_CODE_SIGN_IN = 1;
+
+    private final int PERMISSION_NONE = 0;
+    private final int PERMISSION_ACCOUNTS_REQUEST_CODE = 1;
+    private final int PERMISSION_INTERNET_REQUEST_CODE = 2;
+    private final int PERMISSIONS_REQUIRED = PERMISSION_ACCOUNTS_REQUEST_CODE|PERMISSION_INTERNET_REQUEST_CODE;
+    private int mPermissionsGranted;
+
     private DriveServiceHelper mDriveServiceHelper;
     private RecyclerViewAdapter recycleViewAdapter;
     private RecyclerView recyclerView;
     private TextView tFilter;
     private TextView tNumberOfItems;
     private Button[] mButtons;
+    private ProgressBar pbProgressBar;
 
 
     private String mOpenFileId;
@@ -57,30 +67,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static byte[] mFileContent;
     private String mEncryptionKey = "";
 
+
     private boolean mFileFetched;
 
+    private final int REQUEST_SIGNIN_CODE = 1;
+    public final int LOGIN_NONE = 0;
+    public final int LOGIN_SUCCESS = 1;
+    public final int LOGIN_FAILURE = 2;
+    public int mLoggedIn;
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pdata);
 
+        mPermissionsGranted = PERMISSION_NONE;
+        mLoggedIn = LOGIN_NONE;
+
         mFileFetched = false;
         recyclerView = findViewById(R.id.recyclerView);
+
         recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        recyclerView.setLayoutManager(new CustomLayoutManager(getApplicationContext()));
         recyclerView.setHasFixedSize(true);
 
         recycleViewAdapter = new RecyclerViewAdapter(this);
         recyclerView.setAdapter(recycleViewAdapter);
 
+        // Get Ui Elements
         tFilter = findViewById(R.id.tFilter);
         tNumberOfItems = findViewById(R.id.tNumberOfItems);
+        pbProgressBar = findViewById(R.id.pbProgressbar);
 
         mButtons = new Button[4];
         mButtons[0] =  findViewById(R.id.bPush);
         mButtons[1] =  findViewById(R.id.bPull);
         mButtons[2] =  findViewById(R.id.bAdd);
         mButtons[3] =  findViewById(R.id.bResetFilter);
+
+        // Visibility
+        mButtons[3].setVisibility(View.INVISIBLE);
+        pbProgressBar.setVisibility(View.INVISIBLE);
 
         // Handlers
         for(int idx=0;idx<mButtons.length;idx++) {
@@ -92,13 +121,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tFilter.setEnabled(false);
 
         Logger.setup(this, findViewById(R.id.nagivation_main).findViewById(R.id.logger));
-        Logger.log("Hello Console",false);
-        Logger.log("Signing in",false);
-        requestSignIn();
+        Logger.log("Checking Permissions",false);
+
+        // Check and request missing permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.INTERNET}, PERMISSION_INTERNET_REQUEST_CODE);
+        } else {
+            mPermissionsGranted |= PERMISSION_INTERNET_REQUEST_CODE;
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
+           requestPermissions(new String[]{Manifest.permission.GET_ACCOUNTS}, PERMISSION_ACCOUNTS_REQUEST_CODE);
+        } else {
+            mPermissionsGranted |= PERMISSION_ACCOUNTS_REQUEST_CODE;
+        }
+
+        // Permissions are there
+        if(mPermissionsGranted == PERMISSIONS_REQUIRED){
+            requestSignIn();
+        }
     }
 
     /**
-     * Starts a sign-in activity using {@link #REQUEST_CODE_SIGN_IN}.
+     * Starts a sign-in activity using {@link #}.
      */
     public void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -118,9 +163,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tNumberOfItems.setText(num);
     }
 
-    private void requestSignIn() {
-        Logger.log("Requesting sign-in",false);
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_ACCOUNTS_REQUEST_CODE:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mPermissionsGranted |= PERMISSION_ACCOUNTS_REQUEST_CODE;
+                }  else {
+                    Logger.log( "Error: accounts permission!", true);
+
+                }
+                break;
+            case PERMISSION_INTERNET_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mPermissionsGranted |= PERMISSION_INTERNET_REQUEST_CODE;
+                }  else {
+                    Logger.log( "Error: internet permission!",true);
+
+                }
+                break;
+
+        }
+
+        // Request sign in if the permissions are there
+        if(mPermissionsGranted == PERMISSIONS_REQUIRED){
+            requestSignIn();
+        }
+    }
+
+
+    public void requestSignIn() {
+        Logger.log("Requesting sign-in",false);
         GoogleSignInOptions signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
@@ -129,15 +205,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         GoogleSignInClient client = GoogleSignIn.getClient(this, signInOptions);
 
         // The result of the sign-in Intent is handled in onActivityResult.
-        startActivityForResult(client.getSignInIntent(), REQUEST_CODE_SIGN_IN);
+        startActivityForResult(client.getSignInIntent(),REQUEST_SIGNIN_CODE );
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         switch (requestCode) {
-            case REQUEST_CODE_SIGN_IN:
-                if (resultCode == Activity.RESULT_OK && resultData != null) {
-                    handleSignInResult(resultData);
+            case REQUEST_SIGNIN_CODE:
+                // Exit if canceled
+                if(resultCode == Activity.RESULT_CANCELED){
+                    Logger.log( "Error: Action canceled", true);
+                    this.finishAffinity();
+                }
+
+                if (resultCode == Activity.RESULT_OK) {
+                    if(resultData == null){
+                        Logger.log( "Error: Intent-Result is null",true);
+                    } else {
+                        handleSignInResult(resultData);
+                    }
                 }
                 break;
         }
@@ -168,16 +254,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // The DriveServiceHelper encapsulates all REST API and SAF functionality.
                     // Its instantiation is required before handling any onClick actions.
                     mDriveServiceHelper = new DriveServiceHelper(googleDriveService);
-
                     enableEditing(true);
                     Logger.log("Signed in!",true);
+                    mLoggedIn = LOGIN_SUCCESS;
+
                 })
 
-                .addOnFailureListener(exception -> Logger.log("Unable to sign in",false));
+                .addOnFailureListener(exception -> { Logger.log("Error: Unable to sign in",false);  mLoggedIn = LOGIN_FAILURE; });
     }
 
     private void openFile(String fileId) {
         if (mDriveServiceHelper != null) {
+            pbProgressBar.setVisibility(View.VISIBLE);
             Logger.log( "Opening " + fileId, false);
 
             mDriveServiceHelper.readFile( fileId)
@@ -195,9 +283,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             mFileFetched = false;
                         }
 
+                        pbProgressBar.setVisibility(View.INVISIBLE);
+
                     })
-                    .addOnFailureListener(exception ->
-                            Logger.log("Error: Unable to fetch data",true));
+                    .addOnFailureListener(exception -> {
+                                Logger.log("Error: Unable to fetch data",true);
+                                pbProgressBar.setVisibility(View.INVISIBLE);
+                            }
+                           );
         }
     }
 
@@ -211,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mDriveServiceHelper.createFile()
                     .addOnSuccessListener(fileId -> mDriveServiceHelper.readFile(fileId))
                     .addOnFailureListener(exception ->
-                            Logger.log( "Error: Couldn't create file."+ exception,false));
+                            Logger.log( "Error: Couldn't create file."+ exception,true));
         }
     }
 
@@ -224,10 +317,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             mDriveServiceHelper.saveFile(mOpenFileId, mFileTitleName, mFileContent)
                     .addOnSuccessListener(runnable -> {
-                        Toast.makeText(getApplicationContext(), "Data pushed", Toast.LENGTH_SHORT).show();
+                        Logger.log( "Data pushed", true);
+                        pbProgressBar.setVisibility(View.INVISIBLE);
                     })
-                    .addOnFailureListener(exception ->
-                            Logger.log(  "Error: Unable to save file via REST."+ exception,false));
+                    .addOnFailureListener(exception -> {
+                                Logger.log(  "Error: Unable to save file via REST."+ exception,false);
+                                pbProgressBar.setVisibility(View.INVISIBLE);
+                            });
         }
     }
 
@@ -236,10 +332,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void queryFiles() {
         if (mDriveServiceHelper != null) {
+            pbProgressBar.setVisibility(View.VISIBLE);
             Logger.log(  "Querying for files.",false);
             mDriveServiceHelper.queryFiles()
                     .addOnSuccessListener(fileList -> {
-
+                        pbProgressBar.setVisibility(View.INVISIBLE);
                         Vector<String> queriedIds = new Vector<>();
                         for (File file : fileList.getFiles()) {
                             queriedIds.add(file.getId());
@@ -255,11 +352,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Logger.log("Error: multiple files",true);
                         }
                     })
-                    .addOnFailureListener(exception -> Logger.log(  "Error: Unable to query files."+ exception,false));
+                    .addOnFailureListener(exception -> {Logger.log(  "Error: Unable to query files."+ exception,false);               pbProgressBar.setVisibility(View.INVISIBLE);});
         }
     }
 
-    private void enableEditing(boolean enable){
+    public void enableEditing(boolean enable){
         for(int idx=0;idx<mButtons.length;idx++) {
             mButtons[idx].setEnabled(enable);
         }
@@ -269,11 +366,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void askForPassword(){
 
         final EditText encrypt = new EditText(this);
+        encrypt.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
         encrypt.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogTheme))
         .setTitle("Verification")
-        .setMessage("Enter your Verification Code")
+        .setMessage("Enter your password")
         .setCancelable(false)
         .setView(encrypt);
         alert.setPositiveButton("Go", (dialog, whichButton) -> {
@@ -285,7 +383,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void onClick(View view) {
         int id = view.getId();
-
         switch (id) {
             case R.id.bPull:
                 //createFile();
@@ -293,6 +390,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.bPush:
                 if(mFileFetched ){
+                    pbProgressBar.setVisibility(View.VISIBLE);
                     mFileContent = Encryption.blowfish(recycleViewAdapter.getDataToUpload(),mEncryptionKey,true);
                     if(mFileContent != null)
                         saveFile();
@@ -307,7 +405,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 hideKeyboard();
                 tFilter.clearFocus();
                 break;
-
         }
     }
 
@@ -317,28 +414,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tFilter.setText("");
         }else{
             tFilter.setText("Filter");
+            mButtons[3].setVisibility(View.INVISIBLE);
         }
 
         Log.d("onFocusChange",b+"");
     }
 
     @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-    }
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
 
     @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-    }
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
 
     @Override
     public void afterTextChanged(Editable editable) {
            String search =  editable.toString();
            if(tFilter.isFocused()){
                recycleViewAdapter.setFilter(search);
+               mButtons[3].setVisibility(View.VISIBLE);
            }else{
                recycleViewAdapter.setFilter("");
+               mButtons[3].setVisibility(View.INVISIBLE);
            }
     }
 }
