@@ -1,9 +1,13 @@
 package com.example.gdrivepasswordvault.cards;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -147,7 +151,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return uploadData;
     }
 
-    public boolean parseDownloadedData(byte array[]){
+    public boolean parseDownloadedData(byte[] array){
         boolean status = false;
         int hashIndex = 0;
         String hash = "";
@@ -156,7 +160,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 hashIndex = i;
                 break;
             }
-            hash =(char)array[i]+hash;
+            hash =(char)array[i] + hash;
         }
 
         /**/
@@ -168,14 +172,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             return false;
         }
 
-        String datasplit[] = new String(arrayWithouthash).trim().split("\\r?\\n");
+        String[] datasplit = new String(arrayWithouthash).trim().split("\\r?\\n");
 
         try {
             mCards.clear();
             for (int idx = 0; idx < datasplit.length; idx++) {
                 int dataoffset = datasplit[idx].indexOf(":");
 
-                String subdata[] = datasplit[idx].substring(dataoffset+1).split("\00");
+                String[] subdata = datasplit[idx].substring(dataoffset+1).split("\00");
 
                 if(subdata.length==6)
                     mCards.add(new CardData(subdata[0].replace("\"",""),subdata[1].replace("\"",""),subdata[2].replace("\"",""),subdata[3].replace("\"",""),subdata[4].replace("\"",""),subdata[5].replace("\"","")));
@@ -272,6 +276,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 return true;
             });
             holder.cv.setOnClickListener(view -> {
+
                 if(holder.closed){
                     holder.note.setVisibility(LinearLayout.VISIBLE);
                     holder.closed = false;
@@ -282,6 +287,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     holder.closed = true;
                     rearrangeItems(-1);
                 }
+            });
+
+            holder.copyButton.setOnClickListener(view -> {
+                ClipboardManager clipboard = (ClipboardManager) this.act.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Password",   holder.epassword.getText());
+                clipboard.setPrimaryClip(clip);
+
+                Logger.log("Copied Password to Clipboard",true);
             });
     }
 
@@ -301,12 +314,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         EditText ecomment;
         TextView tdate;
         View note;
+        Button copyButton;
         boolean closed;
 
         CardViewHolder(View itemView) {
             super(itemView);
             cv = itemView.findViewById(R.id.cv);
-
+            copyButton = itemView.findViewById(R.id.copyButton);
             note = itemView.findViewById(R.id.note);
             twebsiteTitle =  itemView.findViewById(R.id.websiteTitle);
             ewebsite =   itemView.findViewById(R.id.editTextWebsite);
@@ -315,6 +329,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             eaccount = itemView.findViewById(R.id.editTextAccount);
             ecomment = itemView.findViewById(R.id.editTextComment);
             tdate =    itemView.findViewById(R.id.date);
+
             note.setVisibility(LinearLayout.GONE);
 
             closed = true;

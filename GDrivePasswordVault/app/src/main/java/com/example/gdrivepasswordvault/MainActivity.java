@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mButtons[idx].setOnClickListener(this);
             mButtons[idx].setEnabled(false);
         }
+
         tFilter.addTextChangedListener(this);
         tFilter.setOnFocusChangeListener(this);
         tFilter.setEnabled(false);
@@ -369,6 +370,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         encrypt.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
         encrypt.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
+
+
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogTheme))
         .setTitle("Verification")
         .setMessage("Enter your password")
@@ -378,7 +381,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mEncryptionKey = encrypt.getText().toString();
             queryFiles();
         })
-        .show();/**/
+        .show(); /**/
+
     }
 
     public void onClick(View view) {

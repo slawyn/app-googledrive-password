@@ -12,39 +12,60 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal" android:weightSum="10">
+
         <androidx.cardview.widget.CardView
             android:id="@+id/cv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|center_vertical" android:layout_weight="1"
-            app:cardBackgroundColor="#00FFFFFF" app:cardElevation="0dp">
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_weight="7"
+            app:cardBackgroundColor="#00FFFFFF"
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:id="@+id/cardSubView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:background="@drawable/card"
-                android:orientation="vertical" android:padding="16dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <TextView
                     android:id="@+id/websiteTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center" android:text="website" android:textSize="14sp"/>
+                    android:layout_marginLeft="20dp"
+                    android:gravity="left"
+                    android:text="website"
+                    android:textSize="12dp" />
 
                 <TextView
                     android:id="@+id/date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/websiteTitle"
-                    android:layout_marginLeft="20dp" android:gravity="bottom" android:text="20 Apr 2019"
-                    android:textSize="10sp"/>
+                    android:layout_marginLeft="20dp"
+                    android:gravity="bottom"
+                    android:text="20 Apr 2019"
+                    android:textSize="10sp" />
+
 
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/copyButton"
+            android:layout_width="51dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:layout_gravity="right"
+            android:background="@drawable/copy"
+            android:orientation="horizontal"
+            android:padding="16dp" />
+
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/note"
         android:layout_width="295dp"

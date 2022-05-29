@@ -14,23 +14,23 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 
 <item android:state_pressed="true" >
     <shape xmlns:android="http://schemas.android.com/apk/res/android">
-        <solid android:color="#FF5599"/>
+        <solid android:color="#f7194d"/>
         <size android:height="60dp"  android:width="60dp"></size>
-        <stroke android:width="2dp" android:color="#FF5599" />
+        <stroke android:width="2dp" android:color="#f7194d" />
         <corners android:radius="60dp"/>
         <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />
     </shape>
 </item>
 
-    <item android:state_enabled="false" >
-        <shape xmlns:android="http://schemas.android.com/apk/res/android">
-            <solid android:color="#444444"/>
-            <size android:height="60dp"  android:width="60dp"></size>
-            <stroke android:width="2dp" android:color="#444444" />
-            <corners android:radius="60dp"/>
-            <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />
-        </shape>
-    </item>
+<item android:state_enabled="false" >
+    <shape xmlns:android="http://schemas.android.com/apk/res/android">
+        <solid android:color="#444444"/>
+        <size android:height="60dp"  android:width="60dp"></size>
+        <stroke android:width="2dp" android:color="#444444" />
+        <corners android:radius="60dp"/>
+        <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />
+    </shape>
+</item>
 
 </selector>
 
