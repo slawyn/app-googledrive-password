@@ -28,14 +28,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:orientation="horizontal"
+                    android:weightSum="10"
                     android:padding="10dp">
 
                     <Button
                         android:id="@+id/bPush"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="1"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="3"
                         android:background="@drawable/button_push"
                         android:text="push"
                         android:typeface="monospace" />
@@ -44,8 +45,7 @@
                         android:id="@+id/bAdd"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="1.3"
+                        android:layout_weight="4"
                         android:background="@drawable/adder"
                         android:text="+"
                         android:typeface="monospace" />
@@ -55,7 +55,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginLeft="10dp"
-                        android:layout_weight="1"
+                        android:layout_weight="3"
                         android:background="@drawable/button_pull"
                         android:text="pull"
                         android:typeface="monospace" />

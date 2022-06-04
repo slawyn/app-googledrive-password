@@ -3,7 +3,6 @@
               xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
               android:id="@+id/maincardlayout"
               android:layout_width="match_parent"
-
               android:layout_height="wrap_content"
               android:layout_marginRight="10dp"
               android:gravity="center_horizontal" android:orientation="vertical" android:padding="10dp">
@@ -63,17 +62,16 @@
             android:background="@drawable/copy"
             android:orientation="horizontal"
             android:padding="16dp" />
-
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/note"
-        android:layout_width="295dp"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
-        android:background="@drawable/marker" android:gravity="center" android:orientation="vertical"
-    >
-
+        android:background="@drawable/marker"
+        android:gravity="center"
+        android:orientation="vertical">
 
         <TableLayout
             android:layout_width="match_parent"
@@ -88,7 +86,8 @@
                     android:id="@+id/website"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="website:" android:textStyle="italic"/>
+                    android:text="website:"
+                    android:textStyle="italic" />
 
                 <EditText
                     android:id="@+id/editTextWebsite"
@@ -109,7 +108,8 @@
                     android:id="@+id/email"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="e-mail:" android:textStyle="italic"/>
+                    android:text="e-mail:"
+                    android:textStyle="italic"/>
 
                 <EditText
                     android:id="@+id/editTextEmail"
@@ -129,7 +129,8 @@
                     android:id="@+id/account"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="account:" android:textStyle="italic"/>
+                    android:text="account:"
+                    android:textStyle="italic"/>
 
                 <EditText
                     android:id="@+id/editTextAccount"
@@ -138,7 +139,8 @@
                     android:ems="10"
                     android:inputType="textPersonName"
                     android:text=""
-                    android:textColor="#000000" android:textSize="8sp"/>
+                    android:textColor="#000000"
+                    android:textSize="8sp"/>
             </TableRow>
 
             <TableRow
@@ -150,7 +152,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="password:"
-                    android:textStyle="italic" android:typeface="monospace"/>
+                    android:textStyle="italic"
+                    android:typeface="monospace"/>
 
                 <EditText
                     android:id="@+id/editTextPassword"
@@ -159,7 +162,8 @@
                     android:ems="10"
                     android:inputType="textPersonName"
                     android:text=""
-                    android:textColor="#000000" android:textSize="8sp"/>
+                    android:textColor="#000000"
+                    android:textSize="8sp"/>
             </TableRow>
 
             <TableRow
@@ -170,8 +174,8 @@
                     android:id="@+id/comment"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:paddingTop="20px"
-                    android:text="comment:" android:textStyle="italic"/>
+                    android:text="comment:"
+                    android:textStyle="italic"/>
 
                 <EditText
                     android:id="@+id/editTextComment"
@@ -181,11 +185,10 @@
                     android:ems="10"
                     android:singleLine="false"
                     android:text=""
-                    android:textColor="#000000" android:textSize="8sp"/>
+                    android:textColor="#000000"
+                    android:textSize="8sp" />
 
             </TableRow>
         </TableLayout>
-
     </LinearLayout>
-
 </LinearLayout>

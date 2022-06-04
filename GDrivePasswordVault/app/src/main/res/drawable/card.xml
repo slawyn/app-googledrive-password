@@ -5,8 +5,8 @@
 xmlns:android="http://schemas.android.com/apk/res/android">
 <item android:state_pressed="false" >
     <shape android:shape = "rectangle">
-        <solid android:color="#f7194d"/>
-        <stroke android:width="3dp" android:color="#B1BCBE" />
+        <solid android:color="#aa194d"/>
+        <stroke android:width="3dp" android:color="#f92288" />
         <corners android:topLeftRadius="00dp"
             android:bottomLeftRadius="50dp"/>
         <size android:width="30dp"/>
@@ -16,8 +16,8 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 
 <item android:state_pressed="true" >
     <shape android:shape = "rectangle">
-        <solid android:color="#8f0e2c"/>
-        <stroke android:width="3dp" android:color="#8f0e2c" />
+        <solid android:color="#f92288"/>
+        <stroke android:width="3dp" android:color="#f92288" />
         <corners android:topLeftRadius="00dp"
             android:bottomLeftRadius="50dp"/>
         <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />

@@ -44,6 +44,9 @@ import java.util.Vector;
 
 // https://dev.to/mesadhan/google-drive-api-with-android-4m2e
 // https://developer.android.com/studio/publish/app-signing#signing-manually
+
+// TODO https://stackoverflow.com/questions/49395231/android-automatically-fill-text-fields-of-another-app
+//
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnFocusChangeListener, TextWatcher {
     private static final String TAG = "GDrivePasswordVault";
 
@@ -371,7 +374,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         encrypt.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 
-
+        //mEncryptionKey = "";
+        //queryFiles();
+/**/
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogTheme))
         .setTitle("Verification")
         .setMessage("Enter your password")
@@ -381,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mEncryptionKey = encrypt.getText().toString();
             queryFiles();
         })
-        .show(); /**/
+        .show();
 
     }
 
