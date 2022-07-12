@@ -30,11 +30,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private MainActivity act;
     private ArrayList<CardData> mCards;
     private ArrayList<FilteredElement> mFilteredOut;
+    private String mFilter;
 
     public RecyclerViewAdapter(MainActivity act){
         this.act = act;
         mCards = new ArrayList<>();
         mFilteredOut = new ArrayList<>();
+        mFilter ="";
         initializeData();
     }
 
@@ -132,7 +134,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             for(int idx=(mFilteredOut.size())-1;idx>=0;idx--) {
                 FilteredElement fe = mFilteredOut.get(idx);
-                uploadList.add(fe.idx, fe.carddata);
+                if(fe.idx < uploadList.size()) {
+                    uploadList.add(fe.idx, fe.carddata);
+                } else {
+                    uploadList.add(fe.carddata);
+                }
             }
 
             for (int i = 0; i < uploadList.size(); i++) {
@@ -176,6 +182,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         try {
             mCards.clear();
+            mFilteredOut.clear();
             for (int idx = 0; idx < datasplit.length; idx++) {
                 int dataoffset = datasplit[idx].indexOf(":");
 
@@ -187,9 +194,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             notifyDataSetChanged();
             act.showNumberOfItems(getItemCount() +"");
-
-
-
             status = true;
 
         }catch(Exception e){
@@ -202,42 +206,38 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return status;
     }
 
-    public void setFilter(String filter){
+    public  boolean setFilter(String filter){
         String fltr = filter.toLowerCase();
-        boolean mFiltered = true;
-        if(fltr.equals("")){
-            mFiltered = false;
-            // push the elements that match back
 
-            for(int idx=(mFilteredOut.size())-1;idx>=0;idx--){
-                FilteredElement fe = mFilteredOut.remove(idx);
-                mCards.add(fe.idx,fe.carddata);
-            }
-        }
-        else{
-            mFiltered = true;
-        }
+        int preFilterSize = mCards.size();
 
-        if(mFiltered){
+        if(fltr.length()>mFilter.length()){
+
             // remove elements that don't match
-            for(int idx=mCards.size()-1;idx>=0;idx--){
-                if(!mCards.get(idx).mData[0].contains(fltr)){
-                    mFilteredOut.add(new FilteredElement(idx,mCards.remove(idx)));
+            for (int idx = mCards.size() - 1; idx >= 0; idx--) {
+                if (!mCards.get(idx).mData[0].contains(fltr)) {
+                    mFilteredOut.add(new FilteredElement(idx, mCards.remove(idx)));
                 }
             }
 
-            for(int idx=(mFilteredOut.size())-1;idx>=0;idx--){
+        } else {
+            for (int idx = (mFilteredOut.size()) - 1; idx >= 0; idx--) {
                 FilteredElement fe = mFilteredOut.get(idx);
-
-                if(fe.carddata.mData[0].contains(fltr)){
+                if (fe.carddata.mData[0].contains(fltr)) {
                     mFilteredOut.remove(idx);
-                    mCards.add(fe.idx,fe.carddata);
+                    if(fe.idx < mCards.size()) {
+                        mCards.add(fe.idx, fe.carddata);
+                    } else {
+                        mCards.add(fe.carddata);
+                    }
+
                 }
             }
         }
 
-        act.showNumberOfItems(getItemCount() +"");
-        notifyDataSetChanged();
+        mFilter = filter;
+        return preFilterSize!=mCards.size();
+
     }
 
     @Override

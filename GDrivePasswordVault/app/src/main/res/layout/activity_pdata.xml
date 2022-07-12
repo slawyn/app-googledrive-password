@@ -38,7 +38,7 @@
                         android:layout_marginRight="10dp"
                         android:layout_weight="3"
                         android:background="@drawable/button_push"
-                        android:text="push"
+                        android:text="Push DB"
                         android:typeface="monospace" />
 
                     <Button
@@ -47,7 +47,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="4"
                         android:background="@drawable/adder"
-                        android:text="+"
+                        android:text="Entry"
                         android:typeface="monospace" />
 
                     <Button
@@ -57,7 +57,7 @@
                         android:layout_marginLeft="10dp"
                         android:layout_weight="3"
                         android:background="@drawable/button_pull"
-                        android:text="pull"
+                        android:text="Pull DB"
                         android:typeface="monospace" />
 
                 </LinearLayout>
@@ -80,9 +80,11 @@
                             android:layout_height="match_parent"
                             android:layout_gravity="start|left"
                             android:layout_weight="10"
+                            android:autoText="false"
                             android:autofillHints=""
                             android:background="#DD0C2020"
                             android:ems="0"
+                            android:freezesText="false"
                             android:inputType="textPersonName"
                             android:maxLength="10"
                             android:paddingLeft="16dp"
@@ -118,6 +120,15 @@
                             android:gravity="center|center_vertical"
                             android:text="0" />
 
+                        <Button
+                            android:id="@+id/bCreate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/button_create"
+                            android:elevation="100dp"
+                            android:enabled="false"
+                            android:text="Create DB"
+                            android:textSize="8sp" />
                         <ProgressBar
                             android:id="@+id/pbProgressbar"
                             android:layout_width="match_parent"
@@ -125,6 +136,7 @@
                             android:layout_gravity="right|end"
                             android:layout_weight="20"
                             android:indeterminate="true" />
+
                     </LinearLayout>
 
                 </LinearLayout>
@@ -148,7 +160,11 @@
                 android:padding="3dp"
                 android:scrollbars="vertical">
 
+
             </androidx.recyclerview.widget.RecyclerView>
+
+
+
         </LinearLayout>
 
     </LinearLayout>

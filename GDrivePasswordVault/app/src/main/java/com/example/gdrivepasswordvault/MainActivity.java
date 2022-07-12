@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -11,7 +12,6 @@ import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -22,12 +22,13 @@ import android.widget.TextView;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gdrivepasswordvault.cards.CustomLayoutManager;
 import com.example.gdrivepasswordvault.cards.RecyclerViewAdapter;
+import com.example.gdrivepasswordvault.net.sergeych.utils.Base64Custom;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -39,6 +40,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Vector;
 
@@ -65,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ProgressBar pbProgressBar;
 
 
+
     private String mOpenFileId;
     private static String mFileTitleName;
     private static byte[] mFileContent;
@@ -72,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private boolean mFileFetched;
+
 
     private final int REQUEST_SIGNIN_CODE = 1;
     public final int LOGIN_NONE = 0;
@@ -104,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tNumberOfItems = findViewById(R.id.tNumberOfItems);
         pbProgressBar = findViewById(R.id.pbProgressbar);
 
-        mButtons = new Button[4];
+        mButtons = new Button[5];
         mButtons[0] =  findViewById(R.id.bPush);
         mButtons[1] =  findViewById(R.id.bPull);
         mButtons[2] =  findViewById(R.id.bAdd);
@@ -113,6 +117,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Visibility
         mButtons[3].setVisibility(View.INVISIBLE);
         pbProgressBar.setVisibility(View.INVISIBLE);
+
+        mButtons[4] = findViewById(R.id.bCreate);
+        mButtons[4].setVisibility(View.INVISIBLE);
 
         // Handlers
         for(int idx=0;idx<mButtons.length;idx++) {
@@ -267,6 +274,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .addOnFailureListener(exception -> { Logger.log("Error: Unable to sign in",false);  mLoggedIn = LOGIN_FAILURE; });
     }
 
+
     private void openFile(String fileId) {
         if (mDriveServiceHelper != null) {
             pbProgressBar.setVisibility(View.VISIBLE);
@@ -277,21 +285,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         mFileTitleName = nameAndContent.first;
                         byte[] array = nameAndContent.second;
 
-                        mFileContent = Encryption.blowfish(array,mEncryptionKey,false);
+                        // If file is not empty
+                        if(array != null && array.length>0){
+                            mFileContent = new Base64Custom().decode(array);
+                            //mFileContent = readLocalDebugDb();
 
-                        if(mFileContent != null && recycleViewAdapter.parseDownloadedData(mFileContent)){
-                            Logger.log("Data fetched",true);
-                            mFileFetched = true;
-                        }else{
-                            Logger.log("Error: Data is erroneous",true);
-                            mFileFetched = false;
+                            if(mFileContent != null &&  mFileContent.length>0){
+                                //Logger.log("DB Base64 Decoded",false);
+
+                                mFileContent = Encryption.blowfish(mFileContent, mEncryptionKey,false);
+                                if(mFileContent != null && recycleViewAdapter.parseDownloadedData(mFileContent)){
+                                    Logger.log("DB fetched",true);
+                                    mFileFetched = true;
+                                }else{
+                                    Logger.log("Error: DB is erroneous",true);
+                                    mFileFetched = false;
+                                }
+                            } else {
+                                Logger.log("Error: DB could not be decoded",true);
+                                mFileFetched = false;
+                            }
+                        } else {
+                            Logger.log("Empty DB fetched",true);
+                            mButtons[4].setEnabled(false);
+                            mButtons[4].setVisibility(View.INVISIBLE);
                         }
 
                         pbProgressBar.setVisibility(View.INVISIBLE);
 
                     })
                     .addOnFailureListener(exception -> {
-                                Logger.log("Error: Unable to fetch data",true);
+                                Logger.log("Error: Unable to fetch DB",true);
                                 pbProgressBar.setVisibility(View.INVISIBLE);
                             }
                            );
@@ -306,10 +330,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Logger.log( "Creating a file",false);
 
             mDriveServiceHelper.createFile()
-                    .addOnSuccessListener(fileId -> mDriveServiceHelper.readFile(fileId))
+                    .addOnSuccessListener(fileId -> {
+
+                        openFile(fileId);
+                    })
                     .addOnFailureListener(exception ->
                             Logger.log( "Error: Couldn't create file."+ exception,true));
         }
+    }
+
+
+    private byte[] readLocalDebugDb(){
+        byte[] bytes = null;
+        try {
+            Resources res = getResources();
+            InputStream in_s = res.openRawResource(R.raw.local_debug_db);
+
+            bytes = new byte[in_s.available()];
+            in_s.read(bytes);
+
+            Logger.log( "Read "+bytes.length +" bytes",true);
+        } catch (Exception e) {
+            Logger.log( "Error: Couldn't find local file."+ e,true);
+        }
+
+        return bytes;
     }
 
     /**
@@ -319,7 +364,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mDriveServiceHelper != null && mOpenFileId != null) {
             Logger.log( "Saving " + mOpenFileId,false);
 
-            mDriveServiceHelper.saveFile(mOpenFileId, mFileTitleName, mFileContent)
+            byte[] bContent = new Base64Custom().encode(mFileContent).getBytes();
+            mDriveServiceHelper.saveFile(mOpenFileId, mFileTitleName, bContent)
                     .addOnSuccessListener(runnable -> {
                         Logger.log( "Data pushed", true);
                         pbProgressBar.setVisibility(View.INVISIBLE);
@@ -349,14 +395,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         if(queriedIds.size() == 1) {
                             mOpenFileId = queriedIds.get(0);
-                            Logger.log("Opening "+mOpenFileId,false);
+                            Logger.log("Opening " + mOpenFileId,false);
                             openFile(mOpenFileId);
                         }
-                        else{
+                        else if (queriedIds.size()>1){
                             Logger.log("Error: multiple files",true);
                         }
+                        else {
+                            mButtons[4].setVisibility(View.VISIBLE);
+                            Logger.log("Warning: No DB found. Create it.",true);
+                        }
                     })
-                    .addOnFailureListener(exception -> {Logger.log(  "Error: Unable to query files."+ exception,false);               pbProgressBar.setVisibility(View.INVISIBLE);});
+                    .addOnFailureListener(exception -> {Logger.log(  "Error: Unable to query files."+ exception,false);pbProgressBar.setVisibility(View.INVISIBLE);});
         }
     }
 
@@ -373,10 +423,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         encrypt.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
         encrypt.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
-
-        //mEncryptionKey = "";
-        //queryFiles();
-/**/
+/*
+        mEncryptionKey = "";
+        queryFiles();
+*/
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogTheme))
         .setTitle("Verification")
         .setMessage("Enter your password")
@@ -394,8 +444,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int id = view.getId();
         switch (id) {
             case R.id.bPull:
-                //createFile();
                 askForPassword();
+                break;
+            case R.id.bCreate:
+                createFile();
                 break;
             case R.id.bPush:
                 if(mFileFetched ){
@@ -412,24 +464,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.bResetFilter:
                 hideKeyboard();
+
                 tFilter.clearFocus();
+                tFilter.setText("Filter");
                 break;
         }
     }
 
     @Override
     public void onFocusChange(View view, boolean b) {
-        if(b){
+
+        /**/if(b){
             tFilter.setText("");
+            mButtons[3].setVisibility(View.VISIBLE);
         }else{
-            tFilter.setText("Filter");
+
+            //tFilter.setText("Filter");
             mButtons[3].setVisibility(View.INVISIBLE);
         }
 
-        Log.d("onFocusChange",b+"");
+       // Log.d("onFocusChange",b+"");
     }
 
     @Override
+
     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
 
     @Override
@@ -438,12 +496,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void afterTextChanged(Editable editable) {
            String search =  editable.toString();
-           if(tFilter.isFocused()){
-               recycleViewAdapter.setFilter(search);
-               mButtons[3].setVisibility(View.VISIBLE);
-           }else{
-               recycleViewAdapter.setFilter("");
-               mButtons[3].setVisibility(View.INVISIBLE);
+
+           if(!tFilter.isFocused() && search.equals("Filter")){
+               search = "";
            }
+
+            if(recycleViewAdapter.setFilter(search)){
+                showNumberOfItems(recycleViewAdapter.getItemCount() +"");
+                recyclerView.post(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            recycleViewAdapter.notifyDataSetChanged();
+                         }
+                });  /**/
+            }
     }
 }

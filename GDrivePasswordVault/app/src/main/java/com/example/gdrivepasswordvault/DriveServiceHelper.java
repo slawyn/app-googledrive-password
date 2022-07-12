@@ -39,7 +39,7 @@ public class DriveServiceHelper {
             File metadata = new File()
                     .setParents(Collections.singletonList("root"))
                     .setMimeType("text/plain")
-                    .setName("Untitled file");
+                    .setName(Global.mFileName);
 
             File googleFile = mDriveService.files().create(metadata).execute();
             if (googleFile == null) {

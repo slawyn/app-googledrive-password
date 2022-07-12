@@ -6,4 +6,5 @@ import java.text.SimpleDateFormat;
 
 public class Global {
     public static final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final String mFileName = "PasswordVault.Encrypted";
 }

@@ -25,7 +25,7 @@
  *  1.8 2007-03-15 tidy.
  *  1.9 2007-05-20 add icon and pad
  */
-package net.sergeych.utils;
+package com.example.gdrivepasswordvault.net.sergeych.utils;
 
 import static java.lang.System.out;
 
@@ -81,35 +81,6 @@ public class Base64Custom {
      * @return An array containing the decoded data bytes.
      * @throws IllegalArgumentException If the input is not valid Base64 encoded data.
      */
-    public static byte[] decodeLines(String s) {
-        char[] buf = new char[s.length()];
-        int p = 0;
-        for (int ip = 0; ip < s.length(); ip++) {
-            char c = s.charAt(ip);
-            if (c != ' ' && c != '\r' && c != '\n' && c != '\t')
-                buf[p++] = c;
-        }
-        return new Base64Custom().decode(new String(buf));
-    }
-
-    public static String encodeString(byte[] data) {
-        Base64Custom b = new Base64Custom();
-        b.setLineLength(0);
-        return b.encode(data);
-    }
-
-    public static String encodeCompactString(byte[] data) {
-        String s = encodeString(data);
-        int last = s.length() - 1;
-        while (last > 0 && s.charAt(last) == '=') last--;
-        return s.substring(0, last + 1);
-    }
-
-    public static String encodeLines(byte[] data) {
-        Base64Custom b = new Base64Custom();
-        b.setLineLength(72);
-        return b.encode(data);
-    }
 
 
     /**
@@ -228,13 +199,13 @@ public class Base64Custom {
      * decode a well-formed complete Base64 string back into an array of bytes. It must have an even multiple of 4 data
      * characters (not counting \n), padded out with = as needed.
      *
-     * @param s base64-encoded string
+     * @param data base64-encoded data
      * @return plaintext as a byte array.
      */
     @SuppressWarnings("fallthrough")
-    public byte[] decode(String s) {
+    public byte[] decode(byte[] data) {
         // estimate worst case size of output array, no embedded newlines.
-        byte[] b = new byte[(s.length() / 4) * 3];
+        byte[] b = new byte[(data.length / 4) * 3];
         // tracks where we are in a cycle of 4 input chars.
         int cycle = 0;
         // where we combine 4 groups of 6 bits and take apart as 3 groups of 8.
@@ -242,10 +213,10 @@ public class Base64Custom {
         // how many bytes we have prepared.
         int j = 0;
         // will be an even multiple of 4 chars, plus some embedded \n
-        int len = s.length();
+        int len = data.length;
         int dummies = 0;
         for (int i = 0; i < len; i++) {
-            int c = s.charAt(i);
+            int c = data[i];
             int value = (c <= 255) ? charToValue[c] : IGNORE;
             // there are two magic values PAD (=) and IGNORE.
             switch (value) {
@@ -476,14 +447,4 @@ public class Base64Custom {
         charToValue = cv;
     }
 
-    public static byte[] decodeCompactString(String s) {
-        StringBuilder sb = new StringBuilder(s.trim());
-        int n = (sb.length() % 4);
-        if( n > 0 ) {
-            n = 4 - n;
-            while (n-- > 0)
-                sb.append('=');
-        }
-        return Base64Custom.decodeLines(sb.toString());
-    }
 } // end Base64
