@@ -1,12 +1,13 @@
 package com.example.gdrivepasswordvault;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 public class MainAccessibilityService extends AccessibilityService {
-    private static final String TAG = "MainService";
+    private static final String TAG = "MainAccessibilityService";
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
         Log.d(TAG, accessibilityEvent.getPackageName() +"[" + accessibilityEvent.getEventType() +"]");
@@ -47,15 +48,24 @@ public class MainAccessibilityService extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         Log.d(TAG, "onServiceConnected");
-        /*
-        AccessibilityServiceInfo info = new AccessibilityServiceInfo();
-        info.eventTypes = AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED;
-        info.eventTypes=AccessibilityEvent.TYPES_ALL_MASK;
-        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;
-        info.notificationTimeout = 100;
-        info.packageNames = null;
-        setServiceInfo(info);
-        */
 
+        // Set the type of events that this service wants to listen to. Others
+        // aren't passed to this service.
+        AccessibilityServiceInfo info = new AccessibilityServiceInfo();
+        info.eventTypes = AccessibilityEvent.TYPE_VIEW_CLICKED |
+                AccessibilityEvent.TYPE_VIEW_FOCUSED;
+
+
+        // Set the type of feedback your service provides.
+        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN;
+
+        // Default services are invoked only if no package-specific services are
+        // present for the type of AccessibilityEvent generated. This service is
+        // app-specific, so the flag isn't necessary. For a general-purpose service,
+        // consider setting the DEFAULT flag.
+
+        info.flags = AccessibilityServiceInfo.DEFAULT;
+        info.notificationTimeout = 100;
+        this.setServiceInfo(info);
     }
 }

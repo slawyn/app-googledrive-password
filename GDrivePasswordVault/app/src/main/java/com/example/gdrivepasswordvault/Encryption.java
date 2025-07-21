@@ -28,14 +28,11 @@ public class Encryption {
         return "";
     }
 
-        public static byte[] blowfish(byte[] message, String key, boolean encryptordecrypt){
-        KeyGenerator keygenerator;
+    public static byte[] blowfish(byte[] message, String key, boolean encryptordecrypt){
 
         byte[] data = null;
         try {
-            keygenerator = KeyGenerator.getInstance("Blowfish");
-
-
+            KeyGenerator keygenerator = KeyGenerator.getInstance("Blowfish");
             SecretKeySpec KS = new SecretKeySpec(key.getBytes(), "Blowfish");
             Cipher cipher = Cipher.getInstance("Blowfish");
 

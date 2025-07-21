@@ -143,7 +143,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             for (int i = 0; i < uploadList.size(); i++) {
                 CardData data = uploadList.get(i);
-                s.append(String.format(":\"%s\"\00\"%s\"\00\"%s\"\00\"%s\"\00\"%s\"\00\"%s\"\n", data.mData[0], data.mData[1], data.mData[2], data.mData[3], data.mData[4], data.mData[5]));
+                s.append(String.format(":%s\00%s\00%s\00%s\00%s\00%s\n", data.mData[0], data.mData[1], data.mData[2], data.mData[3], data.mData[4], data.mData[5]));
             }
 
             uploadData  = (s.toString()+"#"+ Encryption.md5(s.toString().getBytes())).getBytes();
@@ -189,7 +189,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 String[] subdata = datasplit[idx].substring(dataoffset+1).split("\00");
 
                 if(subdata.length==6)
-                    mCards.add(new CardData(subdata[0].replace("\"",""),subdata[1].replace("\"",""),subdata[2].replace("\"",""),subdata[3].replace("\"",""),subdata[4].replace("\"",""),subdata[5].replace("\"","")));
+                    mCards.add(new CardData(subdata[0],subdata[1],subdata[2],subdata[3],subdata[4],subdata[5]));
             }
 
             notifyDataSetChanged();
